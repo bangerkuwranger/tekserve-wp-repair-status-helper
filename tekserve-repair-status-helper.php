@@ -86,54 +86,34 @@ function tekserve_repair_status_server_db_setting_callback() {
 
 }// end function tekserve_repair_status_server_db_setting_callback()
 
-/* Server MySQL data functions 
+/* Shortcode for tekserve repair status checker
+e.g. [repairstatus]
 ******************/
 
-function _checkStatus( $sro, $zip ) {
+function repair_status_checker($atts){
+	wp_register_script( 'tekserverepairstatusjs', plugins_url( '/statuscheck.js', __FILE__ ), array( 'jquery' ) );
+	$plugin = plugins_url( '', __FILE__ );
+	$theme = get_stylesheet_directory_uri();
+	$status_uris = array(
+		'pluginUri'	=> $plugin,
+		'themeUri'	=> $theme
+	);
+	wp_localize_script( 'tekserverepairstatusjs', 'tekRepairStatusUris', $status_uris );
+	wp_enqueue_script( 'tekserverepairstatusjs' );
+	return "<div id='status-wrapper'><div id='status-content'><p>Please use the form below to check the status of your repair at Tekserve. Just enter your invoice number (found in the upper right corner of your receipt) and billing zip code, then click 'SUBMIT'.</p><img id='statusimg' src='' /><div id='fail-msg' style='display:none'><p style='padding:5px 0px'>The information you provided does not match what we have on record.<br />Please double check your information and try again. If it still isn't working for you, call us at: 212.929.3645</p><input onclick='javascript:document.location.reload()' class='button' type='button' value='Try Again'></input></div><div style='display:none' class='customer-info'><ul><li id='customer-info'><h3>Customer Info</h3><div class='info'></p></li><li id='product-info'></li>
+<li class='repair-details'><h3>Details</h3>
+<ul class='repair-details'>
+<li style='display: none'><p>During the first 1-3 business days, your repair will be processed and assigned to a technician.</p></li>
+<li style='display: none'><p>A technician will work on your repair during this time. This will include confirming your issue, ordering replacement parts (if needed), and replacing the affected parts.</p></li>
+<li style='display: none'><p>We are confirming that we resolved the issue.</p></li>
+<li style='display: none'><p>Call Customer Support at 212.929.3645 for more information regarding this repair.</p></li>
+<li style='display: none'><p>The repair is done and has been picked up.</p></li>
+<li style='display: none'><p>The repair is done. It is ready to be picked up, if you have not made other arrangements.</p></li>
+</ul></li></ul><p><input onclick=\"javascript:document.location.reload()\" class=\"button\" type=\"button\" value=\"Start Over\"></p></div><form class='status-front' id='status-front' method='get'><p><span class='label'>Invoice #</span> <a href='javascript:showExampleSRO();'>What's this?</a></p>
+<div id='whats-sro' style='display: none; text-align: left; font-size: 16px; font-weight: normal;' ><div style='background-image: url(" . $plugin . "/sroexample.jpg); background-position: left top; background-size: 100%; float: right; min-height: 150px; width: 48%; min-width: 300px; max-width: 100%; margin-left: 1em; background-repeat: no-repeat;' class='sro-example'>&nbsp;</div>Your Invoice # (also known as a Service Request Order number or SRO number) is the largest number on any repair receipt or invoice from Tekserve. The number is seven digits long and located in the upper right corner of your receipt as shown.</div>
+<hr style='clear: both; visibility: hidden;'>
+<p class='statusField'><input class='limit' name='sro1' id='sro1' type='text' value='' maxlength='1' size='1' tabindex='1' onkeyup='checkLen(this,this.value)'></input> - <input class='limit' name='sro2' id='sro2' type='text' value='' maxlength='3' size='3' tabindex='2' onkeyup='checkLen(this,this.value)'></input> - <input class='limit' name='sro3' id='sro3' type='text' value='' maxlength='3' size='3' tabindex='3' onkeyup='checkLen(this,this.value)'></input></p><p><span class='label'>Billing ZIP Code</span></p><p><input class='limit' name='zip' id='zip' type='text'  value='' maxlength='5' size='5' tabindex='4' onkeyup='checkLen(this,this.value)' /></p><div class='buttons'><button type='button' class='positive'>Submit</button></div></form></div></div></div><div></div>
+";
+}
+add_shortcode( 'repairstatus', 'repair_status_checker' );
 
-	$_server = get_option( 'tekserve_repair_status_server_setting' );
-	$_login = get_option( 'tekserve_repair_status_server_login_setting' );
-	$_pass = get_option( 'tekserve_repair_status_server_password_setting' );
-	$_db = get_option( 'tekserve_repair_status_server_db_setting' );
-	$_query = "SELECT * FROM status WHERE SROnumber='" . $sro . "' AND ZIP='" . $zip . "' LIMIT 1";
-	$status_array = array();
-	
-	mysqli_report(MYSQLI_REPORT_STRICT);
-	try {
-		$mysqli = new mysqli( $_server, $_login, $_pass, $_db );
-	}
-	catch( Exception $e ) {
-
-// 		if ($mysqli->connect_error) {
-		
-			$status_array['error'] = 'Connect Error (' . $mysqli->connect_errno . ') ' . $mysqli->connect_error;
-				
-// 		}// end if ($mysqli->connect_error)
-		
-		return $status_array['error'];
-	} 
-
-	if ( $result = $mysqli->query( $_query ) ) {
-
-		$status_array = $result->fetch_assoc();
-		$result->close();
-
-	}// end if ($result = $mysqli->query( $_query ))
-
-	//return 'Success... ' . $mysqli->host_info . "\n";
-
-	$mysqli->close();
-	
-	return $status_array;
-
-} // end function _checkStatus( $sronum, $zipcode )
-
-function returnRepairStatus( $sro, $zip ) {
-
-	$status = _checkStatus( $sro, $zip );
-	$json = json_encode( $status );
-	
-	return $json;
-// 	return $status;
-	
-} // end function returnRepairStatus( $sro, $zip )
