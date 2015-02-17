@@ -1,4 +1,11 @@
 <?php
+
+/*****************
+
+This file is called by statuscheck.js in function queryAjax() to return 
+
+*****************/
+
 header('Content-type: application/json');
 parse_str( $_SERVER['QUERY_STRING'], $query );
 // include wp-load
