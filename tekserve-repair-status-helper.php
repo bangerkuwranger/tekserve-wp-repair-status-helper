@@ -25,7 +25,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 function tekserve_repair_status_settings() {
 
 	//create settings section
-	add_settings_section( 'tekserve_repair_status_settings_section', 'Tekserve Repair Status', 'tekserve_repair_status_settings_section_callback', 'general');
+	add_settings_section( 'tekserve_repair_status_settings_section', 'Tekserve Repair Status', 'tekserve_repair_status_settings_section_callback', 'general' );
 
 	//create setting options field for server address
 	add_settings_field( 'tekserve_repair_status_server_setting', 'Server Address', 'tekserve_repair_status_server_setting_callback', 'general', 'tekserve_repair_status_settings_section' );
@@ -55,6 +55,10 @@ function tekserve_repair_status_settings() {
 
 //generate settings menu in admin
 add_action( 'admin_init', 'tekserve_repair_status_settings' );
+
+
+
+//callbacks for admin fields
 
 function tekserve_repair_status_settings_section_callback() {
 
@@ -86,17 +90,22 @@ function tekserve_repair_status_server_db_setting_callback() {
 
 }// end function tekserve_repair_status_server_db_setting_callback()
 
+
+
+
 /* Shortcode for tekserve repair status checker
 e.g. [repairstatus]
 ******************/
 
-function repair_status_checker($atts){
+function repair_status_checker( $atts ) {
+
 	//set 'prefilled' to false by default
 	$prefilled = false;
 	
 	//check for 'key', get sro & zip from link to prefill form, set 'prefilled' to true
 	parse_str( $_SERVER['QUERY_STRING'], $query );
 	if( !empty( $query['key'] ) && ( empty( $sro ) || empty( $zip ) ) ) {
+	
 		$key = base64_decode( $query['key'] );
 		parse_str( $key , $query );
 		$sro = $query['sro'];
@@ -105,7 +114,8 @@ function repair_status_checker($atts){
 		$sro3 = substr( $sro, 4, 3);
 		$zip = $query['zip'];
 		$prefilled = true;
-	}
+	
+	}	//end if( !empty( $query['key'] ) && ( empty( $sro ) || empty( $zip ) ) )
 	
 	//load js and pass uri and 'whether prefilled' to script
 	wp_register_script( 'tekserverepairstatusjs', plugins_url( '/statuscheck.js', __FILE__ ), array( 'jquery' ) );
@@ -134,10 +144,13 @@ function repair_status_checker($atts){
 <hr style='clear: both; visibility: hidden;'>
 <p class='statusField'><input class='limit' name='sro1' id='sro1' type='text' value='" . $sro1 . "' maxlength='1' size='1' tabindex='1' onkeyup='checkLen(this,this.value)'></input> - <input class='limit' name='sro2' id='sro2' type='text' value='" . $sro2 . "' maxlength='3' size='3' tabindex='2' onkeyup='checkLen(this,this.value)'></input> - <input class='limit' name='sro3' id='sro3' type='text' value='" . $sro3 . "' maxlength='3' size='3' tabindex='3' onkeyup='checkLen(this,this.value)'></input></p><p><span class='label'>Billing ZIP Code</span></p><p><input class='limit' name='zip' id='zip' type='text'  value='" . $zip . "' maxlength='5' size='5' tabindex='4' onkeyup='checkLen(this,this.value)' /></p><div class='buttons'><button type='button' class='positive'>Submit</button></div></form></div></div></div><div></div>
 ";
-}
+
+}	//end repair_status_checker( $atts )
 add_shortcode( 'repairstatus', 'repair_status_checker' );
 
 /* URL endpoint handler for /servicestatus
 e.g. http://www.tekserve.com/servicestatus/?key=c3JvPTMwNjAxMjEmemlwPTEwMDEy
 ******************/
 
+//currently handled by js after shortcode parses querystring and creates JS vars//
+//would be nice to set a url handler for specific url, and add to an admin setting, but letting it be for now//
